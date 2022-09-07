@@ -1,67 +1,107 @@
+from abc import ABC, abstractmethod
 import numpy as np
 rng = np.random.default_rng()
 
 
-class LinearLayer:
+# **** Abstract classes - start ***************************
+class NetworkComponent(ABC):
+    def __init__(self):
+        self.gradient = None
+
+    def empty_gradient(self):
+        self.gradient = None
+
+    @abstractmethod
+    def __call__(self, input, track_gradient=False):
+        pass
+
+    @abstractmethod
+    def compose_gradients(self, upstream_gradient):
+        pass
+
+
+class Loss(ABC):
+    def __init__(self):
+        self.gradient = None
+
+    def empty_gradient(self):
+        self.gradient = None
+
+    @abstractmethod
+    def __call__(self, input, target, track_gradient=False):
+        pass
+
+# **** Abstract classes - end *****************************
+
+
+class LinearLayer(NetworkComponent):
     """
     Implements a linear layer (biases are absorbed into the weight matrix), including the gradient function.
     """
     def __init__(self, in_features, out_features):
         # Initialize the weight matrix using "Xavier initialization"
+        super().__init__()
         self.W = rng.normal(loc=0, scale=1/out_features**.5, size=(out_features, in_features+1))
         # Initialize biases with 0
-        self.W[:, -1] = 0
+        # self.W[:, -1] = 0
 
-        self.gradient = None
+        # Downstream gradient w.r.t. the weights
+        self.downstream_gradient = None
 
     def __call__(self, X, track_gradient=False):
         X = np.vstack((X, np.ones(X.shape[1])))
         Z = np.dot(self.W, X)
 
         if track_gradient:
+            # (gradient w.r.t. the weights, gradient w.r.t. the input)
             self.gradient = (X, self.W[:, :-1])
         return Z
 
+    def compose_gradients(self, upstream_gradient):
+        # Downstream gradient w.r.t. the weights
+        gradient_weights = upstream_gradient @ self.gradient[0].T
+        # Downstream gradient w.r.t. the input
+        gradient_input = self.gradient[1].T @ upstream_gradient
+
+        self.downstream_gradient = gradient_weights
+        return gradient_input
+
     def empty_gradient(self):
         self.gradient = None
+        self.downstream_gradient = None
+
+    def update_params(self, delta_W):
+        self.W += delta_W
 
 
-class ReLU:
+class ReLU(NetworkComponent):
     """
     Implements the ReLU activation function, including the gradient function.
     """
-    def __init__(self):
-        self.gradient = None
-
     def __call__(self, Z, track_gradient=False):
         if track_gradient:
             self.gradient = np.where(Z < 0, 0, 1)
 
         return np.maximum(Z, 0)
 
-    def empty_gradient(self):
-        self.gradient = None
+    def compose_gradients(self, upstream_gradient):
+        # Downstream gradient w.r.t. the input
+        return upstream_gradient * self.gradient
 
 
-class SoftmaxCrossEntropyLoss:
+class SoftmaxCrossEntropyLoss(Loss):
     """
     Implements softmax combined with the cross entropy loss, including the gradient function.
     """
-    def __init__(self):
-        self.gradient = None
-
     def __call__(self, Z, Y, track_gradient=False):
         P = self.softmax(Z)
         ce = self.cross_entropy(Y, P)
         loss = np.mean(ce)
 
         if track_gradient:
-            self.gradient = (self.softmax(Z) - Y) / Y.shape[1]
+            self.gradient = (P - Y) / Y.shape[1]
 
         return loss
-
-    def empty_gradient(self):
-        self.gradient = None
 
     @staticmethod
     def softmax(Z):

@@ -104,7 +104,7 @@ def circle(sigma=.3, num_samples=250):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    points, labels = x_or()
+    points, labels = gaussian()
 
     plt.scatter(points[0], points[1], c=labels)
     plt.gca().set_aspect('equal')
