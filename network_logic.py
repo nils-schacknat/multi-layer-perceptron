@@ -1,4 +1,5 @@
 import numpy as np
+from tqdm import tqdm
 
 
 class Model:
@@ -15,7 +16,49 @@ class Model:
 
         return X
 
-    def fit(self, X, Y, lr):
+    def fit(self, X, Y, num_epochs, batch_size, lr, get_predictions=None):
+        num_batches = int(np.ceil(X.shape[-1] / batch_size))
+        loss_list = []
+        acc_list = []
+        prediction_list = []
+
+        current_acc = 0
+        current_epoch = 0
+        for e in tqdm(
+                    range(num_epochs),
+                    ascii=' 123456789#',
+                    # leave=False,
+                    desc=f'#Epoch {current_epoch + 1}/{num_epochs}',
+                    postfix=f'Acc = {current_acc:.4f}'
+            ):
+            num_correct = 0
+            loss = 0
+
+            for i in range(num_batches):
+                start = i*batch_size
+                stop = min(X.shape[-1], (i+1)*batch_size)
+
+                loss_, acc_ = self.fit_batch(X[:, start:stop], Y[:, start:stop], lr=lr)
+                num_correct += (stop-start) * acc_
+                loss += (stop-start) * loss_
+
+            if get_predictions is not None:
+                prediction_list.append(get_predictions(self))
+
+            acc = num_correct / X.shape[-1]
+            loss /= X.shape[-1]
+            acc_list.append(acc)
+            loss_list.append(loss)
+
+            current_epoch += 1
+            current_acc = acc
+
+        if get_predictions is not None:
+            return acc_list, loss_list, prediction_list
+        else:
+            return acc_list, loss_list
+
+    def fit_batch(self, X, Y, lr):
         if len(X.shape) == 1:
             X = X.reshape(1, X.shape[0])
 
