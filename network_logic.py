@@ -15,7 +15,7 @@ class Model:
 
         return X
 
-    def fit(self, X, Y):
+    def fit(self, X, Y, lr):
         if len(X.shape) == 1:
             X = X.reshape(1, X.shape[0])
 
@@ -40,7 +40,7 @@ class Model:
         # Optimize and empty gradients
         for comp in self.components:
             if hasattr(comp, 'downstream_gradient'):
-                delta = -comp.downstream_gradient * 0.001
+                delta = -comp.downstream_gradient * lr
                 comp.update_params(delta)
 
             comp.empty_gradient()
@@ -54,28 +54,28 @@ if __name__ == '__main__':
     from network_components import *
     from sample_data import *
 
-    # # Get sample data
-    # X, Y = gaussian()
-    # # Transform Y into probabilities
-    # Y_ = np.zeros((2, Y.shape[0]))
-    # Y_[0, Y] = 1
-    # Y_[1, 1-Y] = 0
+    # Get sample data
+    X, Y = gaussian()
+    # Transform Y into probabilities
+    Y_ = np.zeros((2, Y.shape[0]))
+    Y_[1, Y == 1] = 1
+    Y_[0, Y == 0] = 1
 
-    X = np.array([
-        [-1, 1, 3, -2],
-        [-2, 1, 2, -1]
-    ])
-    Y = np.array([
-        [0, 1, 1, 0],
-        [1, 0, 0, 1]
-    ])
+    # X = np.array([
+    #     [-1, 1, 3, -2],
+    #     [-2, 1, 2, -1]
+    # ])
+    # Y = np.array([
+    #     [0, 1, 1, 0],
+    #     [1, 0, 0, 1]
+    # ])
 
     # # Define model architecture
     # linear1 = LinearLayer(in_features=2, out_features=3)
     # relu = ReLU()
     # linear2 = LinearLayer(in_features=3, out_features=2)
     # smax_ce_loss = SoftmaxCrossEntropyLoss()
-
+    #
     # linear1.W = np.array([
     #     [0.98, 0.063, 0.01],
     #     [0.81, 0.21, 0.02],
@@ -86,7 +86,7 @@ if __name__ == '__main__':
     #     [0.14, -0.10, 1.39, -0.01],
     #     [-1.20, 0.64, -0.23,  0.023]
     # ])
-
+    #
     # model = Model(
     #     linear1,
     #     relu,
@@ -100,7 +100,9 @@ if __name__ == '__main__':
         linear1,
         loss_func=smax_ce_loss
     )
-
-    loss = model.fit(X, Y)
-
-
+    # i=0
+    # loss, acc = model.fit(X[:, i].reshape(2, 1), Y_[:, i].reshape(2, 1), lr=.01)
+    # print(loss, acc)
+    for i in range(1000):
+        loss, acc = model.fit(X, Y_, lr=.01)
+        print(loss, acc)
