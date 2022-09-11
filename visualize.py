@@ -48,7 +48,7 @@ def get_grid_predictions(x_min, x_max, nx, y_min, y_max, ny, model):
 def plot_grid_prediction(grid_prediction, X, Y, epoch, acc, dpi=dpi):
     x, y, preds = grid_prediction
 
-    fig, ax = plt.subplots(dpi=dpi)
+    fig, ax = plt.subplots(dpi=dpi, facecolor=None)
 
     cf = plt.contourf(x, y, preds, levels=np.linspace(0, 1, num_levels))
     cb = plt.colorbar(ticks=np.linspace(0, 1, 6))

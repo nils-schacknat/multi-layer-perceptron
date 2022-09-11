@@ -89,6 +89,22 @@ class ReLU(NetworkComponent):
         return upstream_gradient * self.gradient
 
 
+class TanH(NetworkComponent):
+    """
+    Implements the tanh activation function, including the gradient function.
+    """
+    def __call__(self, Z, track_gradient=False):
+        tanh = np.tanh(Z)
+        if track_gradient:
+            self.gradient = 1 - tanh**2
+
+        return tanh
+
+    def compose_gradients(self, upstream_gradient):
+        # Downstream gradient w.r.t. the input
+        return upstream_gradient * self.gradient
+
+
 class SoftmaxCrossEntropyLoss(Loss):
     """
     Implements softmax combined with the cross entropy loss, including the gradient function.
