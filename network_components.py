@@ -43,7 +43,7 @@ class LinearLayer(NetworkComponent):
         super().__init__()
         self.W = rng.normal(loc=0, scale=1/out_features**.5, size=(out_features, in_features+1))
         # Initialize biases with 0
-        # self.W[:, -1] = 0
+        self.W[:, -1] = 0
 
         # Downstream gradient w.r.t. the weights
         self.downstream_gradient = None
@@ -117,14 +117,4 @@ class SoftmaxCrossEntropyLoss(Loss):
 
 
 if __name__ == '__main__':
-    L = LinearLayer(in_features=3, out_features=4)
-    X = rng.random((3, 5))
-    Z = L(X)
-    # print(L(X))
-
-    loss = SoftmaxCrossEntropyLoss()
-    P = loss.softmax(Z)
-    # print(P, np.sum(P, axis=0))
-    Y = np.zeros(P.shape)
-    Y[0, :] = 1
-    # print(loss.cross_entropy(Y, P))
+    pass
