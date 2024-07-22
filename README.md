@@ -1,6 +1,6 @@
-## Multilayer Perceptron
-A from scratch implementation of a modular MLP framework, which only uses numpy.
+## Multilayer Perceptron    
+This is a from scratch numpy implementation of a modular MLP framework, with the goal of better understanding the backpropagation algorithm.
 
 
-![alt text](https://github.com/nils-schacknat/multi-layer-perceptron/blob/main/%231%20Perceptron/circle.gif)\
+![alt text](https://github.com/nils-schacknat/multi-layer-perceptron/blob/main/circle.gif)\
 *A simple toy problem, inspired by https://playground.tensorflow.org/.*
